@@ -44,6 +44,7 @@ export function useVideos() {
       const isCoach = profile?.role === 'coach';
 
       // Build query based on user role
+      // Build query to get all videos (public videos for athletes, all videos for coaches)
       let query = supabase
         .from('videos')
         .select('*')
@@ -58,12 +59,16 @@ export function useVideos() {
 
       if (error) throw error;
 
+      console.log('Fetched videos:', videosData); // Debug log
+
       // Get user profiles for all videos
       const userIds = videosData?.map(v => v.user_id) || [];
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('user_id, display_name, avatar_url, role')
         .in('user_id', userIds);
+
+      console.log('Fetched profiles:', profilesData); // Debug log
 
       // Fetch like counts, comment counts, and user likes for each video
       const videosWithCounts = await Promise.all(
@@ -101,6 +106,7 @@ export function useVideos() {
         })
       );
 
+      console.log('Videos with all data:', videosWithCounts); // Debug log
       setVideos(videosWithCounts);
     } catch (error: any) {
       console.error('Error fetching videos:', error);
