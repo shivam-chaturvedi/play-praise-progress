@@ -3,8 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { Users, Video, Trophy, Star } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
+  const { user } = useAuth();
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -102,16 +104,26 @@ const Index = () => {
             Join thousands of athletes who are already improving their skills with professional coaching feedback
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/login">
-              <Button variant="outline" size="lg">
-                Sign In
-              </Button>
-            </Link>
-            <Link to="/signup">
-              <Button size="lg">
-                Create Account
-              </Button>
-            </Link>
+            {user ? (
+              <Link to="/dashboard">
+                <Button size="lg">
+                  Go to Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="outline" size="lg">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button size="lg">
+                    Create Account
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>

@@ -14,7 +14,186 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      likes: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "likes_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          skill_level: Database["public"]["Enums"]["skill_level"] | null
+          sport: Database["public"]["Enums"]["sport_type"] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          skill_level?: Database["public"]["Enums"]["skill_level"] | null
+          sport?: Database["public"]["Enums"]["sport_type"] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          skill_level?: Database["public"]["Enums"]["skill_level"] | null
+          sport?: Database["public"]["Enums"]["sport_type"] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rewards: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          created_at: string
+          description: string | null
+          id: string
+          title: string
+          video_id: string | null
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          title: string
+          video_id?: string | null
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          title?: string
+          video_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rewards_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      videos: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_coaches_only: boolean | null
+          skill_level: Database["public"]["Enums"]["skill_level"] | null
+          sport: Database["public"]["Enums"]["sport_type"] | null
+          title: string
+          updated_at: string
+          user_id: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_coaches_only?: boolean | null
+          skill_level?: Database["public"]["Enums"]["skill_level"] | null
+          sport?: Database["public"]["Enums"]["sport_type"] | null
+          title: string
+          updated_at?: string
+          user_id: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_coaches_only?: boolean | null
+          skill_level?: Database["public"]["Enums"]["skill_level"] | null
+          sport?: Database["public"]["Enums"]["sport_type"] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +202,15 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      skill_level: "L1" | "L2" | "L3"
+      sport_type:
+        | "tennis"
+        | "volleyball"
+        | "football"
+        | "golf"
+        | "basketball"
+        | "other"
+      user_role: "athlete" | "coach"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +337,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      skill_level: ["L1", "L2", "L3"],
+      sport_type: [
+        "tennis",
+        "volleyball",
+        "football",
+        "golf",
+        "basketball",
+        "other",
+      ],
+      user_role: ["athlete", "coach"],
+    },
   },
 } as const
