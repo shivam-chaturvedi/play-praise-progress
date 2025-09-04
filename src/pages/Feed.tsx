@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, MessageCircle, Share2, MoreHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { VideoPlayer } from "@/components/VideoPlayer";
+
 const Feed = () => {
   // Mock data - replace with actual feed data
   const posts = [

@@ -8,6 +8,17 @@ interface DashboardStats {
   likesCount: number;
   commentsCount: number;
   rewardsCount: number;
+  viewsCount: number;
+  followersCount: number;
+}
+
+interface ActivityItem {
+  id: string;
+  type: 'like' | 'comment' | 'upload' | 'view';
+  action: string;
+  videoTitle?: string;
+  userName?: string;
+  created_at: string;
 }
 
 export function useDashboard() {
@@ -15,10 +26,13 @@ export function useDashboard() {
     videosCount: 0,
     likesCount: 0,
     commentsCount: 0,
-    rewardsCount: 0
+    rewardsCount: 0,
+    viewsCount: 0,
+    followersCount: 0
   });
   const [recentVideos, setRecentVideos] = useState<any[]>([]);
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
+  const [liveStats, setLiveStats] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -33,7 +47,7 @@ export function useDashboard() {
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id);
 
-      // Fetch total likes on user's videos
+      // Fetch user's videos for stats calculation
       const { data: userVideos } = await supabase
         .from('videos')
         .select('id')
@@ -43,20 +57,30 @@ export function useDashboard() {
       
       let likesCount = 0;
       let commentsCount = 0;
+      let viewsCount = 0;
 
       if (videoIds.length > 0) {
+        // Get total likes on user's videos
         const { count: totalLikes } = await supabase
           .from('likes')
           .select('*', { count: 'exact', head: true })
           .in('video_id', videoIds);
 
+        // Get total comments on user's videos
         const { count: totalComments } = await supabase
           .from('comments')
           .select('*', { count: 'exact', head: true })
           .in('video_id', videoIds);
 
+        // Get total views on user's videos
+        const { count: totalViews } = await supabase
+          .from('video_views')
+          .select('*', { count: 'exact', head: true })
+          .in('video_id', videoIds);
+
         likesCount = totalLikes || 0;
         commentsCount = totalComments || 0;
+        viewsCount = totalViews || 0;
       }
 
       // Fetch rewards count (received as athlete)
@@ -69,65 +93,127 @@ export function useDashboard() {
         videosCount: videosCount || 0,
         likesCount,
         commentsCount,
-        rewardsCount: rewardsCount || 0
+        rewardsCount: rewardsCount || 0,
+        viewsCount,
+        followersCount: 0 // TODO: Implement followers system
       });
 
-      // Fetch recent videos
+      // Fetch recent videos with view counts
       const { data: videos } = await supabase
         .from('videos')
-        .select(`
-          *,
-          profiles!videos_user_id_fkey (
-            display_name,
-            avatar_url,
-            role
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(3);
 
-      setRecentVideos(videos || []);
+      // Add view counts to videos
+      const videosWithViews = await Promise.all(
+        (videos || []).map(async (video) => {
+          const { count: viewCount } = await supabase
+            .from('video_views')
+            .select('*', { count: 'exact', head: true })
+            .eq('video_id', video.id);
 
-      // Fetch recent activity (likes and comments on user's videos)
-      const recentLikes = videoIds.length > 0 ? await supabase
-        .from('likes')
-        .select(`
-          *,
-          videos!likes_video_id_fkey (title),
-          profiles!likes_user_id_fkey (display_name)
-        `)
-        .in('video_id', videoIds)
-        .order('created_at', { ascending: false })
-        .limit(5) : { data: [] };
+          return {
+            ...video,
+            views: viewCount || 0
+          };
+        })
+      );
 
-      const recentComments = videoIds.length > 0 ? await supabase
-        .from('comments')
-        .select(`
-          *,
-          videos!comments_video_id_fkey (title),
-          profiles!comments_user_id_fkey (display_name)
-        `)
-        .in('video_id', videoIds)
-        .order('created_at', { ascending: false })
-        .limit(5) : { data: [] };
+      setRecentVideos(videosWithViews);
 
-      // Combine and sort activity
-      const allActivity = [
-        ...(recentLikes.data || []).map(like => ({
-          ...like,
-          type: 'like',
-          action: 'liked your video'
-        })),
-        ...(recentComments.data || []).map(comment => ({
-          ...comment,
-          type: 'comment',
-          action: 'commented on your video'
-        }))
-      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-       .slice(0, 5);
+      // Fetch recent activity with more detail
+      const activity: ActivityItem[] = [];
 
-      setRecentActivity(allActivity);
+      if (videoIds.length > 0) {
+        // Recent likes - fetch separately and join manually
+        const { data: recentLikes } = await supabase
+          .from('likes')
+          .select('*')
+          .in('video_id', videoIds)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        // Recent comments - fetch separately and join manually
+        const { data: recentComments } = await supabase
+          .from('comments')
+          .select('*')
+          .in('video_id', videoIds)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        // Recent views - fetch separately and join manually
+        const { data: recentViews } = await supabase
+          .from('video_views')
+          .select('*')
+          .in('video_id', videoIds)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        // Get all user IDs from activities
+        const allUserIds = [
+          ...(recentLikes || []).map(l => l.user_id),
+          ...(recentComments || []).map(c => c.user_id),
+          ...(recentViews || []).map(v => v.user_id).filter(Boolean)
+        ];
+
+        // Get profiles for all users
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, display_name')
+          .in('user_id', allUserIds);
+
+        // Get video titles
+        const { data: videos } = await supabase
+          .from('videos')
+          .select('id, title')
+          .in('id', videoIds);
+
+        // Combine activities with profile and video data
+        (recentLikes || []).forEach(like => {
+          const profile = profiles?.find(p => p.user_id === like.user_id);
+          const video = videos?.find(v => v.id === like.video_id);
+          activity.push({
+            id: like.id,
+            type: 'like',
+            action: 'liked your video',
+            videoTitle: video?.title,
+            userName: profile?.display_name,
+            created_at: like.created_at
+          });
+        });
+
+        (recentComments || []).forEach(comment => {
+          const profile = profiles?.find(p => p.user_id === comment.user_id);
+          const video = videos?.find(v => v.id === comment.video_id);
+          activity.push({
+            id: comment.id,
+            type: 'comment',
+            action: 'commented on your video',
+            videoTitle: video?.title,
+            userName: profile?.display_name,
+            created_at: comment.created_at
+          });
+        });
+
+        (recentViews || []).forEach(view => {
+          const profile = profiles?.find(p => p.user_id === view.user_id);
+          const video = videos?.find(v => v.id === view.video_id);
+          activity.push({
+            id: view.id,
+            type: 'view',
+            action: 'viewed your video',
+            videoTitle: video?.title,
+            userName: profile?.display_name || 'Anonymous',
+            created_at: view.created_at
+          });
+        });
+      }
+
+      // Sort all activity by date
+      activity.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setRecentActivity(activity.slice(0, 10));
 
     } catch (error: any) {
       console.error('Error fetching dashboard data:', error);
@@ -144,7 +230,7 @@ export function useDashboard() {
   useEffect(() => {
     fetchDashboardData();
 
-    // Set up real-time subscriptions
+    // Set up real-time subscriptions for live updates
     const videosSubscription = supabase
       .channel('dashboard_videos')
       .on('postgres_changes', {
@@ -179,10 +265,22 @@ export function useDashboard() {
       })
       .subscribe();
 
+    const viewsSubscription = supabase
+      .channel('dashboard_views')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'video_views'
+      }, () => {
+        fetchDashboardData();
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(videosSubscription);
       supabase.removeChannel(likesSubscription);
       supabase.removeChannel(commentsSubscription);
+      supabase.removeChannel(viewsSubscription);
     };
   }, [user]);
 
@@ -190,6 +288,7 @@ export function useDashboard() {
     stats,
     recentVideos,
     recentActivity,
+    liveStats,
     loading,
     refetch: fetchDashboardData
   };
