@@ -21,6 +21,7 @@ export interface Video {
   } | null;
   likes_count?: number;
   comments_count?: number;
+  views_count?: number;
   user_liked?: boolean;
 }
 
@@ -85,6 +86,12 @@ export function useVideos() {
             .select('*', { count: 'exact', head: true })
             .eq('video_id', video.id);
 
+          // Get views count
+          const { count: viewsCount } = await supabase
+            .from('video_views')
+            .select('*', { count: 'exact', head: true })
+            .eq('video_id', video.id);
+
           // Check if current user liked this video
           const { data: userLike } = await supabase
             .from('likes')
@@ -100,6 +107,7 @@ export function useVideos() {
             ...video,
             likes_count: likesCount || 0,
             comments_count: commentsCount || 0,
+            views_count: viewsCount || 0,
             user_liked: !!userLike,
             profiles: profile || null
           };
