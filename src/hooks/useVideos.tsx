@@ -18,7 +18,7 @@ export interface Video {
     display_name: string | null;
     avatar_url: string | null;
     role: 'athlete' | 'coach';
-  };
+  } | null;
   likes_count?: number;
   comments_count?: number;
   user_liked?: boolean;
@@ -46,14 +46,7 @@ export function useVideos() {
       // Build query based on user role
       let query = supabase
         .from('videos')
-        .select(`
-          *,
-          profiles (
-            display_name,
-            avatar_url,
-            role
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       // If not a coach, only show non-coaches-only videos or own videos
@@ -61,13 +54,20 @@ export function useVideos() {
         query = query.or(`is_coaches_only.eq.false,user_id.eq.${user.id}`);
       }
 
-      const { data, error } = await query;
+      const { data: videosData, error } = await query;
 
       if (error) throw error;
 
+      // Get user profiles for all videos
+      const userIds = videosData?.map(v => v.user_id) || [];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, display_name, avatar_url, role')
+        .in('user_id', userIds);
+
       // Fetch like counts, comment counts, and user likes for each video
       const videosWithCounts = await Promise.all(
-        (data || []).map(async (video) => {
+        (videosData || []).map(async (video) => {
           // Get likes count
           const { count: likesCount } = await supabase
             .from('likes')
@@ -88,11 +88,15 @@ export function useVideos() {
             .eq('user_id', user.id)
             .single();
 
+          // Find profile for this video
+          const profile = profilesData?.find(p => p.user_id === video.user_id);
+
           return {
             ...video,
             likes_count: likesCount || 0,
             comments_count: commentsCount || 0,
-            user_liked: !!userLike
+            user_liked: !!userLike,
+            profiles: profile || null
           };
         })
       );
@@ -198,14 +202,7 @@ export function useVideos() {
     try {
       const { data, error } = await supabase
         .from('videos')
-        .select(`
-          *,
-          profiles (
-            display_name,
-            avatar_url,
-            role
-          )
-        `)
+        .select('*')
         .eq('user_id', targetUserId)
         .order('created_at', { ascending: false });
 

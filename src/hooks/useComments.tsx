@@ -14,7 +14,7 @@ export interface Comment {
     display_name: string | null;
     avatar_url: string | null;
     role: 'athlete' | 'coach';
-  };
+  } | null;
 }
 
 export function useComments(videoId: string) {
@@ -27,21 +27,31 @@ export function useComments(videoId: string) {
     if (!videoId) return;
 
     try {
-      const { data, error } = await supabase
+      const { data: commentsData, error } = await supabase
         .from('comments')
-        .select(`
-          *,
-          profiles (
-            display_name,
-            avatar_url,
-            role
-          )
-        `)
+        .select('*')
         .eq('video_id', videoId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setComments(data || []);
+
+      // Get user profiles for all comments
+      const userIds = commentsData?.map(c => c.user_id) || [];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, display_name, avatar_url, role')
+        .in('user_id', userIds);
+
+      // Combine comments with profiles
+      const commentsWithProfiles = (commentsData || []).map(comment => {
+        const profile = profilesData?.find(p => p.user_id === comment.user_id);
+        return {
+          ...comment,
+          profiles: profile || null
+        };
+      });
+
+      setComments(commentsWithProfiles);
     } catch (error: any) {
       console.error('Error fetching comments:', error);
       toast({
@@ -65,19 +75,24 @@ export function useComments(videoId: string) {
           user_id: user.id,
           content
         })
-        .select(`
-          *,
-          profiles (
-            display_name,
-            avatar_url,
-            role
-          )
-        `)
+        .select()
         .single();
 
       if (error) throw error;
 
-      setComments(prev => [...prev, data]);
+      // Get user profile for the new comment
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('display_name, avatar_url, role')
+        .eq('user_id', user.id)
+        .single();
+
+      const newComment = {
+        ...data,
+        profiles: profileData
+      };
+
+      setComments(prev => [...prev, newComment]);
       toast({
         title: "Success",
         description: "Comment added successfully",
