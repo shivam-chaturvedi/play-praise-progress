@@ -6,8 +6,9 @@ export function useVideoViews(videoId: string) {
   const [views, setViews] = useState(0);
   const { user } = useAuth();
 
-  const trackView = async () => {
+  const trackView = async (videoId: string) => {
     if (!videoId) return;
+
 
     try {
       await supabase
@@ -15,7 +16,7 @@ export function useVideoViews(videoId: string) {
         .insert({
           video_id: videoId,
           user_id: user?.id || null,
-          ip_address: null, // Would need server-side implementation for real IP
+          ip_address: null, 
           user_agent: navigator.userAgent
         });
 

@@ -1,26 +1,53 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, MessageCircle, Share, Play, MoreHorizontal, Eye } from "lucide-react";
+import {
+  Heart,
+  MessageCircle,
+  Share,
+  Play,
+  MoreHorizontal,
+  Eye,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useVideos } from "@/hooks/useVideos";
 import { useProfile } from "@/hooks/useProfile";
 import { useComments } from "@/hooks/useComments";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
+import { useVideoViews } from "@/hooks/useVideoViews";
+import VideoComments from "@/components/VideoComments";
 
 const Feed = () => {
   const { signOut } = useAuth();
   const { profile } = useProfile();
   const { videos, loading, toggleLike } = useVideos();
-  const [selectedVideoForComments, setSelectedVideoForComments] = useState<string | null>(null);
+  const [selectedVideoForComments, setSelectedVideoForComments] = useState<
+    string | null
+  >(null);
   const [newComment, setNewComment] = useState("");
 
   const { comments, addComment } = useComments(selectedVideoForComments || "");
+
+  const { trackView } = useVideoViews(selectedVideoForComments || "");
 
   const handleSignOut = async () => {
     await signOut();
@@ -28,7 +55,7 @@ const Feed = () => {
 
   const handleComment = async () => {
     if (!newComment.trim() || !selectedVideoForComments) return;
-    
+
     await addComment(newComment);
     setNewComment("");
   };
@@ -51,13 +78,19 @@ const Feed = () => {
           <h1 className="text-2xl font-bold text-foreground">Feed</h1>
           <div className="flex items-center gap-4">
             <Link to="/dashboard">
-              <Button variant="outline" size="sm">Dashboard</Button>
+              <Button variant="outline" size="sm">
+                Dashboard
+              </Button>
             </Link>
             <Link to="/post">
-              <Button variant="outline" size="sm">Post Video</Button>
+              <Button variant="outline" size="sm">
+                Post Video
+              </Button>
             </Link>
             <Link to="/profile">
-              <Button variant="outline" size="sm">Profile</Button>
+              <Button variant="outline" size="sm">
+                Profile
+              </Button>
             </Link>
             <Button variant="outline" size="sm" onClick={handleSignOut}>
               Sign Out
@@ -73,12 +106,11 @@ const Feed = () => {
               <Play className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-semibold mb-2">No videos yet</h3>
               <p className="text-muted-foreground mb-4">
-                {profile?.role === 'athlete' 
-                  ? "Be the first to share a practice video!" 
-                  : "No videos to review yet. Encourage athletes to share their practice!"
-                }
+                {profile?.role === "athlete"
+                  ? "Be the first to share a practice video!"
+                  : "No videos to review yet. Encourage athletes to share their practice!"}
               </p>
-              {profile?.role === 'athlete' && (
+              {profile?.role === "athlete" && (
                 <Link to="/post">
                   <Button>Upload Your First Video</Button>
                 </Link>
@@ -103,7 +135,14 @@ const Feed = () => {
                           {video.profiles?.display_name || "Anonymous"}
                         </p>
                         <div className="flex items-center gap-2">
-                          <Badge variant={video.profiles?.role === 'coach' ? 'default' : 'secondary'} className="text-xs">
+                          <Badge
+                            variant={
+                              video.profiles?.role === "coach"
+                                ? "default"
+                                : "secondary"
+                            }
+                            className="text-xs"
+                          >
                             {video.profiles?.role}
                           </Badge>
                           {video.sport && (
@@ -121,7 +160,9 @@ const Feed = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(video.created_at), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(video.created_at), {
+                          addSuffix: true,
+                        })}
                       </span>
                       <Button variant="ghost" size="sm">
                         <MoreHorizontal className="h-4 w-4" />
@@ -143,61 +184,75 @@ const Feed = () => {
 
                     {/* Video Player */}
                     <div className="aspect-video bg-muted rounded-lg overflow-hidden relative">
-                      <video 
-                        controls 
+                      <video
+                        controls
                         className="w-full h-full object-cover"
                         poster="/placeholder.svg"
                         preload="metadata"
                         crossOrigin="anonymous"
+                        onPlay={() => {
+                          trackView(video.id);
+                        }}
                         onError={(e) => {
-                          console.error('Video error:', e);
-                          console.log('Video URL:', video.video_url);
+                          console.error("Video error:", e);
+                          console.log("Video URL:", video.video_url);
                         }}
                         onLoadStart={() => {
-                          console.log('Video loading started:', video.video_url);
+                          console.log(
+                            "Video loading started:",
+                            video.video_url
+                          );
                         }}
                         onLoadedData={() => {
-                          console.log('Video loaded successfully');
+                          console.log("Video loaded successfully");
                         }}
-                        style={{ backgroundColor: '#000' }}
+                        style={{ backgroundColor: "#000" }}
                       >
                         <source src={video.video_url} type="video/mp4" />
                         Your browser does not support the video tag.
                       </video>
-                      
+
                       {/* Debug info */}
                       <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                        {video.video_url ? 'Video URL: Valid' : 'No video URL'}
+                        {video.video_url ? "Video URL: Valid" : "No video URL"}
                       </div>
                     </div>
 
                     {/* Action Buttons */}
                     <div className="flex items-center justify-between pt-2">
                       <div className="flex items-center gap-4">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="flex items-center gap-2"
                           onClick={() => toggleLike(video.id)}
                         >
-                          <Heart 
-                            className={`h-4 w-4 ${video.user_liked ? 'fill-red-500 text-red-500' : ''}`}
+                          <Heart
+                            className={`h-4 w-4 ${
+                              video.user_liked
+                                ? "fill-red-500 text-red-500"
+                                : ""
+                            }`}
                           />
                           <span>{video.likes_count || 0}</span>
                         </Button>
 
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <Eye className="h-4 w-4" />
-                          <span className="text-sm">{video.views_count || 0}</span>
+                          <span className="text-sm">
+                            {video.views_count || 0}
+                          </span>
                         </div>
 
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               className="flex items-center gap-2"
-                              onClick={() => setSelectedVideoForComments(video.id)}
+                              onClick={() =>
+                                setSelectedVideoForComments(video.id)
+                              }
                             >
                               <MessageCircle className="h-4 w-4" />
                               <span>{video.comments_count || 0}</span>
@@ -212,12 +267,14 @@ const Feed = () => {
                             </DialogHeader>
                             <div className="space-y-4">
                               {/* Add comment form (coaches only) */}
-                              {profile?.role === 'coach' && (
+                              {profile?.role === "coach" && (
                                 <div className="space-y-2">
                                   <Textarea
                                     placeholder="Add your feedback..."
                                     value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
+                                    onChange={(e) =>
+                                      setNewComment(e.target.value)
+                                    }
                                     rows={3}
                                   />
                                   <Button onClick={handleComment}>
@@ -229,32 +286,55 @@ const Feed = () => {
                               {/* Comments list */}
                               <div className="space-y-3">
                                 {comments.map((comment) => (
-                                  <div key={comment.id} className="flex gap-3 p-3 rounded-lg border">
+                                  <div
+                                    key={comment.id}
+                                    className="flex gap-3 p-3 rounded-lg border"
+                                  >
                                     <Avatar className="w-8 h-8">
-                                      <AvatarImage src={comment.profiles?.avatar_url || ""} />
+                                      <AvatarImage
+                                        src={comment.profiles?.avatar_url || ""}
+                                      />
                                       <AvatarFallback>
-                                        {comment.profiles?.display_name?.charAt(0) || "U"}
+                                        {comment.profiles?.display_name?.charAt(
+                                          0
+                                        ) || "U"}
                                       </AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1">
                                       <div className="flex items-center gap-2 mb-1">
                                         <p className="font-medium text-sm">
-                                          {comment.profiles?.display_name || "Anonymous"}
+                                          {comment.profiles?.display_name ||
+                                            "Anonymous"}
                                         </p>
-                                        <Badge variant={comment.profiles?.role === 'coach' ? 'default' : 'secondary'} className="text-xs">
+                                        <Badge
+                                          variant={
+                                            comment.profiles?.role === "coach"
+                                              ? "default"
+                                              : "secondary"
+                                          }
+                                          className="text-xs"
+                                        >
                                           {comment.profiles?.role}
                                         </Badge>
                                         <span className="text-xs text-muted-foreground">
-                                          {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                                          {formatDistanceToNow(
+                                            new Date(comment.created_at),
+                                            { addSuffix: true }
+                                          )}
                                         </span>
                                       </div>
-                                      <p className="text-sm">{comment.content}</p>
+                                      <p className="text-sm">
+                                        {comment.content}
+                                      </p>
                                     </div>
                                   </div>
                                 ))}
                                 {comments.length === 0 && (
                                   <p className="text-center text-muted-foreground py-4">
-                                    No comments yet. {profile?.role === 'coach' ? 'Be the first to give feedback!' : 'Waiting for coach feedback...'}
+                                    No comments yet.{" "}
+                                    {profile?.role === "coach"
+                                      ? "Be the first to give feedback!"
+                                      : "Waiting for coach feedback..."}
                                   </p>
                                 )}
                               </div>
@@ -262,7 +342,17 @@ const Feed = () => {
                           </DialogContent>
                         </Dialog>
 
-                        <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                        <Button
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(
+                              video.video_url
+                            );
+                            toast.success("Video URL copied to clipboard!");
+                          }}
+                          variant="ghost"
+                          size="sm"
+                          className="flex items-center gap-2"
+                        >
                           <Share className="h-4 w-4" />
                           Share
                         </Button>
@@ -275,6 +365,7 @@ const Feed = () => {
                       )}
                     </div>
                   </div>
+                  <VideoComments videoId={video.id} profile={profile}  />
                 </CardContent>
               </Card>
             ))}

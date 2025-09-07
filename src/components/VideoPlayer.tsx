@@ -25,7 +25,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const handlePlay = () => {
     if (videoRef.current) {
       if (!hasTrackedView) {
-        trackView();
+        // trackView();
         setHasTrackedView(true);
       }
       videoRef.current.play();
@@ -68,7 +68,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         preload="metadata"
         onPlay={() => {
           if (!hasTrackedView) {
-            trackView();
+            // trackView();
             setHasTrackedView(true);
           }
           setIsPlaying(true);

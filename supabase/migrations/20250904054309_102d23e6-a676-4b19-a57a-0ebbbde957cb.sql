@@ -14,3 +14,6 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.video_views;
 
 ALTER TABLE public.profiles REPLICA IDENTITY FULL;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
+
+ALTER TABLE public.video_views
+ADD CONSTRAINT unique_video_user UNIQUE (video_id, user_id);

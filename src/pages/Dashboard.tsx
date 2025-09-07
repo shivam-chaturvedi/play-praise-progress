@@ -1,13 +1,27 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Video, Heart, MessageCircle, Trophy, TrendingUp, Upload, Eye, Play } from "lucide-react";
+import {
+  Video,
+  Heart,
+  MessageCircle,
+  Trophy,
+  TrendingUp,
+  Upload,
+  Eye,
+  Play,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useDashboard } from "@/hooks/useDashboard";
-import { useVideoViews } from "@/hooks/useVideoViews";
 import { formatDistanceToNow } from "date-fns";
 
 const Dashboard = () => {
@@ -18,6 +32,8 @@ const Dashboard = () => {
   const handleSignOut = async () => {
     await signOut();
   };
+
+  console.log("Dashboard stats:", recentVideos);
 
   if (loading) {
     return (
@@ -36,19 +52,27 @@ const Dashboard = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-            <Badge variant={profile?.role === 'coach' ? 'default' : 'secondary'}>
-              {profile?.role || 'loading...'}
+            <Badge
+              variant={profile?.role === "coach" ? "default" : "secondary"}
+            >
+              {profile?.role || "loading..."}
             </Badge>
           </div>
           <div className="flex items-center gap-4">
             <Link to="/feed">
-              <Button variant="outline" size="sm">Feed</Button>
+              <Button variant="outline" size="sm">
+                Feed
+              </Button>
             </Link>
             <Link to="/post">
-              <Button variant="outline" size="sm">Post Video</Button>
+              <Button variant="outline" size="sm">
+                Post Video
+              </Button>
             </Link>
             <Link to="/profile">
-              <Button variant="outline" size="sm">Profile</Button>
+              <Button variant="outline" size="sm">
+                Profile
+              </Button>
             </Link>
             <Button variant="outline" size="sm" onClick={handleSignOut}>
               Sign Out
@@ -61,11 +85,11 @@ const Dashboard = () => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2">
-            Welcome back, {profile?.display_name || 'Athlete'}!
+            Welcome back, {profile?.display_name || "Athlete"}!
           </h2>
           <p className="text-muted-foreground">
-            {profile?.role === 'coach' 
-              ? "Ready to help athletes improve their game?" 
+            {profile?.role === "coach"
+              ? "Ready to help athletes improve their game?"
               : "Keep practicing and sharing your progress!"}
           </p>
         </div>
@@ -75,20 +99,26 @@ const Dashboard = () => {
           <div className="lg:col-span-2 grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Videos Uploaded</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Videos Uploaded
+                </CardTitle>
                 <Video className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.videosCount}</div>
                 <p className="text-xs text-muted-foreground">
-                  {profile?.role === 'athlete' ? 'Keep sharing your practice!' : 'Videos reviewed'}
+                  {profile?.role === "athlete"
+                    ? "Keep sharing your practice!"
+                    : "Videos reviewed"}
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Likes</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Likes
+                </CardTitle>
                 <Heart className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -114,7 +144,9 @@ const Dashboard = () => {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Views
+                </CardTitle>
                 <Eye className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -133,7 +165,7 @@ const Dashboard = () => {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {profile?.role === 'athlete' && (
+                {profile?.role === "athlete" && (
                   <Link to="/post" className="block">
                     <Button className="w-full" size="sm">
                       <Upload className="h-4 w-4 mr-2" />
@@ -160,7 +192,9 @@ const Dashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Latest interactions on your content</CardDescription>
+                <CardDescription>
+                  Latest interactions on your content
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {recentActivity.length === 0 ? (
@@ -170,19 +204,27 @@ const Dashboard = () => {
                 ) : (
                   <div className="space-y-3">
                     {recentActivity.map((activity) => (
-                      <div key={activity.id} className="flex items-center gap-3 text-sm">
-                        <div className={`w-2 h-2 rounded-full ${
-                          activity.type === 'like' ? 'bg-red-500' :
-                          activity.type === 'comment' ? 'bg-blue-500' :
-                          activity.type === 'view' ? 'bg-green-500' :
-                          'bg-primary'
-                        }`}></div>
+                      <div
+                        key={activity.id}
+                        className="flex items-center gap-3 text-sm"
+                      >
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            activity.type === "like"
+                              ? "bg-red-500"
+                              : activity.type === "comment"
+                              ? "bg-blue-500"
+                              : activity.type === "view"
+                              ? "bg-green-500"
+                              : "bg-primary"
+                          }`}
+                        ></div>
                         <div className="flex-1">
                           <p>
                             <span className="font-medium">
-                              {activity.userName || 'Someone'}
-                            </span>{' '}
-                            {activity.action}{' '}
+                              {activity.userName || "Someone"}
+                            </span>{" "}
+                            {activity.action}{" "}
                             {activity.videoTitle && (
                               <span className="font-medium">
                                 "{activity.videoTitle}"
@@ -190,7 +232,10 @@ const Dashboard = () => {
                             )}
                           </p>
                           <p className="text-muted-foreground text-xs">
-                            {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                            {formatDistanceToNow(
+                              new Date(activity.created_at),
+                              { addSuffix: true }
+                            )}
                           </p>
                         </div>
                       </div>
@@ -214,19 +259,36 @@ const Dashboard = () => {
                 {recentVideos.map((video) => (
                   <div key={video.id} className="space-y-2">
                     <div className="aspect-video bg-muted rounded-lg overflow-hidden relative group cursor-pointer">
-                      <video 
-                        className="w-full h-full object-cover"
-                        poster="/placeholder.svg"
-                        onPlay={() => {
-                          // Track view when video starts playing
-                          // This could be implemented with the useVideoViews hook
-                        }}
-                      >
-                        <source src={video.video_url} type="video/mp4" />
-                      </video>
-                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      {/* Video Player */}
+                      <div className="aspect-video bg-muted rounded-lg overflow-hidden relative">
+                        <video
+                          key={video.id}
+                          src={video.video_url}
+                          controls
+                          playsInline
+                          className="w-full h-full rounded-lg bg-black"
+                          poster="/placeholder.svg"
+                          preload="metadata"
+                          onError={(e) => {
+                            console.error(
+                              "Video error:",
+                              e.currentTarget.error
+                            );
+                            console.log("Video URL:", video.video_url);
+                          }}
+                        />
+
+                        {/* Debug info */}
+                        <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                          {video.video_url
+                            ? "Video URL: Valid"
+                            : "No video URL"}
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                         <Play className="h-12 w-12 text-white" />
                       </div>
+
                       <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
                         {video.views || 0} views
                       </div>
@@ -251,7 +313,9 @@ const Dashboard = () => {
                           {video.views || 0}
                         </span>
                         <span>
-                          {formatDistanceToNow(new Date(video.created_at), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(video.created_at), {
+                            addSuffix: true,
+                          })}
                         </span>
                       </div>
                     </div>
