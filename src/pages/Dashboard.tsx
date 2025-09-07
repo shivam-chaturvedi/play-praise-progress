@@ -17,11 +17,13 @@ import {
   Upload,
   Eye,
   Play,
+  Palette,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useDashboard } from "@/hooks/useDashboard";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { formatDistanceToNow } from "date-fns";
 
 const Dashboard = () => {
@@ -48,22 +50,31 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
+      <header className="glass-effect border-b sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+            <h1 className="text-2xl font-bold text-gradient">Dashboard</h1>
             <Badge
               variant={profile?.role === "coach" ? "default" : "secondary"}
+              className="shadow-sm"
             >
               {profile?.role || "loading..."}
             </Badge>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Link to="/feed">
               <Button variant="outline" size="sm">
                 Feed
               </Button>
             </Link>
+            {profile?.role === "athlete" && (
+              <Link to="/athlete-comments">
+                <Button variant="accent" size="sm" className="shadow-md">
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  View Coach Comments
+                </Button>
+              </Link>
+            )}
             <Link to="/post">
               <Button variant="outline" size="sm">
                 Post Video
@@ -74,6 +85,7 @@ const Dashboard = () => {
                 Profile
               </Button>
             </Link>
+            <ThemeToggle />
             <Button variant="outline" size="sm" onClick={handleSignOut}>
               Sign Out
             </Button>
@@ -97,15 +109,15 @@ const Dashboard = () => {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Stats Cards */}
           <div className="lg:col-span-2 grid gap-6 md:grid-cols-2">
-            <Card>
+            <Card className="card-hover">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Videos Uploaded
                 </CardTitle>
-                <Video className="h-4 w-4 text-muted-foreground" />
+                <Video className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.videosCount}</div>
+                <div className="text-2xl font-bold text-gradient">{stats.videosCount}</div>
                 <p className="text-xs text-muted-foreground">
                   {profile?.role === "athlete"
                     ? "Keep sharing your practice!"
@@ -114,43 +126,43 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="card-hover">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Total Likes
                 </CardTitle>
-                <Heart className="h-4 w-4 text-muted-foreground" />
+                <Heart className="h-4 w-4 text-red-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.likesCount}</div>
+                <div className="text-2xl font-bold text-gradient">{stats.likesCount}</div>
                 <p className="text-xs text-muted-foreground">
                   Likes received on your videos
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="card-hover">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Comments</CardTitle>
-                <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                <MessageCircle className="h-4 w-4 text-secondary" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.commentsCount}</div>
+                <div className="text-2xl font-bold text-gradient">{stats.commentsCount}</div>
                 <p className="text-xs text-muted-foreground">
                   Feedback from coaches
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="card-hover">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Total Views
                 </CardTitle>
-                <Eye className="h-4 w-4 text-muted-foreground" />
+                <Eye className="h-4 w-4 text-accent" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.viewsCount}</div>
+                <div className="text-2xl font-bold text-gradient">{stats.viewsCount}</div>
                 <p className="text-xs text-muted-foreground">
                   Views across all videos
                 </p>
@@ -160,18 +172,29 @@ const Dashboard = () => {
 
           {/* Quick Actions */}
           <div className="space-y-6">
-            <Card>
+            <Card className="card-hover">
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Palette className="h-5 w-5 text-primary" />
+                  Quick Actions
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {profile?.role === "athlete" && (
-                  <Link to="/post" className="block">
-                    <Button className="w-full" size="sm">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload New Video
-                    </Button>
-                  </Link>
+                  <>
+                    <Link to="/post" className="block">
+                      <Button variant="gradient" className="w-full" size="sm">
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload New Video
+                      </Button>
+                    </Link>
+                    <Link to="/athlete-comments" className="block">
+                      <Button variant="accent" className="w-full" size="sm">
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        View Coach Comments
+                      </Button>
+                    </Link>
+                  </>
                 )}
                 <Link to="/feed" className="block">
                   <Button variant="outline" className="w-full" size="sm">
@@ -189,9 +212,12 @@ const Dashboard = () => {
             </Card>
 
             {/* Recent Activity */}
-            <Card>
+            <Card className="card-hover">
               <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-accent" />
+                  Recent Activity
+                </CardTitle>
                 <CardDescription>
                   Latest interactions on your content
                 </CardDescription>
@@ -249,9 +275,12 @@ const Dashboard = () => {
 
         {/* Recent Videos */}
         {recentVideos.length > 0 && (
-          <Card className="mt-6">
+          <Card className="mt-6 card-hover">
             <CardHeader>
-              <CardTitle>Your Recent Videos</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Video className="h-5 w-5 text-primary" />
+                Your Recent Videos
+              </CardTitle>
               <CardDescription>Your latest uploads</CardDescription>
             </CardHeader>
             <CardContent>
