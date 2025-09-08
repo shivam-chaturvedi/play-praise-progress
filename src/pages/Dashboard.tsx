@@ -1,30 +1,24 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Video,
-  Heart,
   MessageCircle,
-  Trophy,
-  TrendingUp,
-  Upload,
   Eye,
-  Play,
-  Palette,
+  BarChart3,
+  Calendar,
+  Settings,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useDashboard } from "@/hooks/useDashboard";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { formatDistanceToNow } from "date-fns";
+
+// Enhanced Dashboard Components
+import { StatsCards } from "@/components/dashboard/StatsCards";
+import { AnalyticsCharts } from "@/components/dashboard/AnalyticsCharts";
+import { ActivityTimeline } from "@/components/dashboard/ActivityTimeline";
+import { VideoGrid } from "@/components/dashboard/VideoGrid";
+import { QuickActions } from "@/components/dashboard/QuickActions";
 
 const Dashboard = () => {
   const { signOut } = useAuth();
@@ -69,7 +63,7 @@ const Dashboard = () => {
             </Link>
             {profile?.role === "athlete" && (
               <Link to="/athlete-comments">
-                <Button variant="accent" size="sm" className="shadow-md">
+                <Button variant="default" size="sm" className="shadow-md btn-accent">
                   <MessageCircle className="h-4 w-4 mr-2" />
                   View Coach Comments
                 </Button>
@@ -93,267 +87,64 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 space-y-8">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">
-            Welcome back, {profile?.display_name || "Athlete"}!
-          </h2>
-          <p className="text-muted-foreground">
-            {profile?.role === "coach"
-              ? "Ready to help athletes improve their game?"
-              : "Keep practicing and sharing your progress!"}
-          </p>
+        <div className="text-center space-y-4">
+          <div className="space-y-2">
+            <h2 className="text-4xl font-bold text-gradient">
+              Welcome back, {profile?.display_name || "Athlete"}!
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              {profile?.role === "coach"
+                ? "Ready to help athletes reach their potential?"
+                : "Track your progress and keep improving your game!"}
+            </p>
+          </div>
+          
+          <div className="flex items-center justify-center gap-4 flex-wrap">
+            <Badge variant="outline" className="px-3 py-1">
+              <Calendar className="h-4 w-4 mr-2" />
+              {new Date().toLocaleDateString('en-US', { 
+                weekday: 'long',
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </Badge>
+            
+            <Badge variant="secondary" className="px-3 py-1">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              {stats.videosCount} Videos Uploaded
+            </Badge>
+            
+            {stats.viewsCount > 0 && (
+              <Badge variant="default" className="px-3 py-1 btn-accent">
+                <Eye className="h-4 w-4 mr-2" />
+                {stats.viewsCount.toLocaleString()} Total Views
+              </Badge>
+            )}
+          </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Stats Cards */}
-          <div className="lg:col-span-2 grid gap-6 md:grid-cols-2">
-            <Card className="card-hover">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Videos Uploaded
-                </CardTitle>
-                <Video className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gradient">{stats.videosCount}</div>
-                <p className="text-xs text-muted-foreground">
-                  {profile?.role === "athlete"
-                    ? "Keep sharing your practice!"
-                    : "Videos reviewed"}
-                </p>
-              </CardContent>
-            </Card>
+        {/* Enhanced Stats Cards */}
+        <StatsCards stats={stats} />
 
-            <Card className="card-hover">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Likes
-                </CardTitle>
-                <Heart className="h-4 w-4 text-red-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gradient">{stats.likesCount}</div>
-                <p className="text-xs text-muted-foreground">
-                  Likes received on your videos
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="card-hover">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Comments</CardTitle>
-                <MessageCircle className="h-4 w-4 text-secondary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gradient">{stats.commentsCount}</div>
-                <p className="text-xs text-muted-foreground">
-                  Feedback from coaches
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="card-hover">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Views
-                </CardTitle>
-                <Eye className="h-4 w-4 text-accent" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gradient">{stats.viewsCount}</div>
-                <p className="text-xs text-muted-foreground">
-                  Views across all videos
-                </p>
-              </CardContent>
-            </Card>
+        {/* Main Dashboard Grid */}
+        <div className="grid gap-8 lg:grid-cols-3">
+          {/* Analytics Charts - Takes 2 columns */}
+          <div className="lg:col-span-2 space-y-6">
+            <AnalyticsCharts stats={stats} />
           </div>
 
-          {/* Quick Actions */}
+          {/* Sidebar with Actions and Activity */}
           <div className="space-y-6">
-            <Card className="card-hover">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Palette className="h-5 w-5 text-primary" />
-                  Quick Actions
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {profile?.role === "athlete" && (
-                  <>
-                    <Link to="/post" className="block">
-                      <Button variant="gradient" className="w-full" size="sm">
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload New Video
-                      </Button>
-                    </Link>
-                    <Link to="/athlete-comments" className="block">
-                      <Button variant="accent" className="w-full" size="sm">
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        View Coach Comments
-                      </Button>
-                    </Link>
-                  </>
-                )}
-                <Link to="/feed" className="block">
-                  <Button variant="outline" className="w-full" size="sm">
-                    <Eye className="h-4 w-4 mr-2" />
-                    Browse Feed
-                  </Button>
-                </Link>
-                <Link to="/profile" className="block">
-                  <Button variant="outline" className="w-full" size="sm">
-                    <TrendingUp className="h-4 w-4 mr-2" />
-                    View Profile
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            {/* Recent Activity */}
-            <Card className="card-hover">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-accent" />
-                  Recent Activity
-                </CardTitle>
-                <CardDescription>
-                  Latest interactions on your content
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {recentActivity.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No recent activity. Share a video to get started!
-                  </p>
-                ) : (
-                  <div className="space-y-3">
-                    {recentActivity.map((activity) => (
-                      <div
-                        key={activity.id}
-                        className="flex items-center gap-3 text-sm"
-                      >
-                        <div
-                          className={`w-2 h-2 rounded-full ${
-                            activity.type === "like"
-                              ? "bg-red-500"
-                              : activity.type === "comment"
-                              ? "bg-blue-500"
-                              : activity.type === "view"
-                              ? "bg-green-500"
-                              : "bg-primary"
-                          }`}
-                        ></div>
-                        <div className="flex-1">
-                          <p>
-                            <span className="font-medium">
-                              {activity.userName || "Someone"}
-                            </span>{" "}
-                            {activity.action}{" "}
-                            {activity.videoTitle && (
-                              <span className="font-medium">
-                                "{activity.videoTitle}"
-                              </span>
-                            )}
-                          </p>
-                          <p className="text-muted-foreground text-xs">
-                            {formatDistanceToNow(
-                              new Date(activity.created_at),
-                              { addSuffix: true }
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <QuickActions userRole={profile?.role} stats={stats} />
+            <ActivityTimeline activities={recentActivity} loading={loading} />
           </div>
         </div>
 
-        {/* Recent Videos */}
-        {recentVideos.length > 0 && (
-          <Card className="mt-6 card-hover">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Video className="h-5 w-5 text-primary" />
-                Your Recent Videos
-              </CardTitle>
-              <CardDescription>Your latest uploads</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
-                {recentVideos.map((video) => (
-                  <div key={video.id} className="space-y-2">
-                    <div className="aspect-video bg-muted rounded-lg overflow-hidden relative group cursor-pointer">
-                      {/* Video Player */}
-                      <div className="aspect-video bg-muted rounded-lg overflow-hidden relative">
-                        <video
-                          key={video.id}
-                          src={video.video_url}
-                          controls
-                          playsInline
-                          className="w-full h-full rounded-lg bg-black"
-                          poster="/placeholder.svg"
-                          preload="metadata"
-                          onError={(e) => {
-                            console.error(
-                              "Video error:",
-                              e.currentTarget.error
-                            );
-                            console.log("Video URL:", video.video_url);
-                          }}
-                        />
-
-                        {/* Debug info */}
-                        <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                          {video.video_url
-                            ? "Video URL: Valid"
-                            : "No video URL"}
-                        </div>
-                      </div>
-                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                        <Play className="h-12 w-12 text-white" />
-                      </div>
-
-                      <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                        {video.views || 0} views
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-sm">{video.title}</h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        {video.sport && (
-                          <Badge variant="outline" className="text-xs">
-                            {video.sport}
-                          </Badge>
-                        )}
-                        {video.skill_level && (
-                          <Badge variant="outline" className="text-xs">
-                            {video.skill_level}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
-                        <span className="flex items-center gap-1">
-                          <Eye className="h-3 w-3" />
-                          {video.views || 0}
-                        </span>
-                        <span>
-                          {formatDistanceToNow(new Date(video.created_at), {
-                            addSuffix: true,
-                          })}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Video Grid */}
+        <VideoGrid videos={recentVideos} loading={loading} />
       </main>
     </div>
   );
