@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useVideos } from "@/hooks/useVideos";
-import { useComments } from "@/hooks/useComments";
+import { useAthleteComments } from "@/hooks/useAthleteComments";
 import { formatDistanceToNow } from "date-fns";
 
 const AthleteComments = () => {
@@ -23,22 +23,17 @@ const AthleteComments = () => {
 
   // Get user's videos
   const userVideos = videos.filter(video => video.user_id === profile?.user_id);
+  const userVideoIds = userVideos.map(video => video.id);
 
-  // Get all comments for user's videos
-  const allComments = userVideos.flatMap(video => {
-    const { comments } = useComments(video.id);
-    return comments.map(comment => ({
-      ...comment,
-      video: video,
-    }));
-  });
+  // Get all comments for user's videos using the new hook
+  const { comments: allComments, loading: commentsLoading } = useAthleteComments(userVideoIds);
 
   // Filter and sort comments
   const filteredComments = allComments
     .filter(comment => {
       const matchesSearch = comment.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          comment.video.title.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesSport = filterSport === "all" || comment.video.sport === filterSport;
+                          comment.video?.title?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSport = filterSport === "all" || comment.video?.sport === filterSport;
       return matchesSearch && matchesSport;
     })
     .sort((a, b) => {
@@ -48,7 +43,7 @@ const AthleteComments = () => {
         case "oldest":
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case "video":
-          return a.video.title.localeCompare(b.video.title);
+          return a.video?.title?.localeCompare(b.video?.title || '') || 0;
         default:
           return 0;
       }
@@ -156,7 +151,14 @@ const AthleteComments = () => {
         </Card>
 
         {/* Comments List */}
-        {filteredComments.length === 0 ? (
+        {commentsLoading ? (
+          <Card className="text-center py-12">
+            <CardContent>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading comments...</p>
+            </CardContent>
+          </Card>
+        ) : filteredComments.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
               <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -181,10 +183,10 @@ const AthleteComments = () => {
                   <div className="flex gap-4">
                     {/* Video Thumbnail */}
                     <div className="flex-shrink-0">
-                      <Link to={`/video/${comment.video.id}`}>
+                      <Link to={`/video/${comment.video?.id}`}>
                         <div className="w-32 h-20 bg-muted rounded-lg overflow-hidden relative group cursor-pointer">
                           <video
-                            src={comment.video.video_url}
+                            src={comment.video?.video_url}
                             className="w-full h-full object-cover"
                             preload="metadata"
                           />
@@ -226,18 +228,18 @@ const AthleteComments = () => {
                       </div>
 
                       <div className="mb-3">
-                        <Link to={`/video/${comment.video.id}`}>
+                        <Link to={`/video/${comment.video?.id}`}>
                           <h3 className="font-medium text-primary hover:underline mb-1">
-                            {comment.video.title}
+                            {comment.video?.title}
                           </h3>
                         </Link>
                         <div className="flex items-center gap-2">
-                          {comment.video.sport && (
+                          {comment.video?.sport && (
                             <Badge variant="outline" className="text-xs">
                               {comment.video.sport}
                             </Badge>
                           )}
-                          {comment.video.skill_level && (
+                          {comment.video?.skill_level && (
                             <Badge variant="outline" className="text-xs">
                               {comment.video.skill_level}
                             </Badge>
