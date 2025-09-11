@@ -29,10 +29,13 @@ interface VideoData {
   sport?: string;
   skill_level?: string;
   created_at: string;
-  views: number;
+  views?: number;
   likes?: number;
   comments?: number;
   description?: string;
+  user_id?: string;
+  is_coaches_only?: boolean;
+  updated_at?: string;
 }
 
 interface VideoGridProps {

@@ -103,9 +103,9 @@ export function AnalyticsCharts({ stats, recentVideos }: AnalyticsChartsProps) {
   };
 
   return (
-    <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
-      {/* Weekly Trends */}
-      <Card className="card-hover md:col-span-2">
+    <div className="grid gap-4 sm:gap-6">
+      {/* Weekly Trends - Full width on mobile, maintains layout on larger screens */}
+      <Card className="card-hover">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
             <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
@@ -113,9 +113,9 @@ export function AnalyticsCharts({ stats, recentVideos }: AnalyticsChartsProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <ChartContainer config={chartConfig} className="min-h-[250px] sm:min-h-[300px]">
+          <ChartContainer config={chartConfig} className="h-[200px] sm:h-[250px] md:h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trendData}>
+              <AreaChart data={trendData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                 <defs>
                   <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
@@ -137,6 +137,7 @@ export function AnalyticsCharts({ stats, recentVideos }: AnalyticsChartsProps) {
                   stroke="hsl(var(--muted-foreground))" 
                   fontSize={10}
                   className="sm:text-xs"
+                  width={30}
                 />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Area
@@ -166,90 +167,96 @@ export function AnalyticsCharts({ stats, recentVideos }: AnalyticsChartsProps) {
         </CardContent>
       </Card>
 
-      {/* Engagement Distribution */}
-      <Card className="card-hover">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-secondary" />
-            Engagement Distribution
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <ChartContainer config={chartConfig} className="min-h-[200px] sm:min-h-[250px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={engagementData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {engagementData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Legend 
-                  verticalAlign="bottom" 
-                  height={36}
-                  formatter={(value, entry) => (
-                    <span style={{ color: entry.color }}>{value}</span>
-                  )}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+      {/* Bottom Charts Grid - Stacked on mobile, side by side on larger screens */}
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+        {/* Engagement Distribution */}
+        <Card className="card-hover">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-secondary" />
+              Engagement
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <ChartContainer config={chartConfig} className="h-[180px] sm:h-[220px] md:h-[250px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                  <Pie
+                    data={engagementData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={70}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {engagementData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={30}
+                    fontSize={10}
+                    formatter={(value, entry) => (
+                      <span style={{ color: entry.color, fontSize: '10px' }}>{value}</span>
+                    )}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
 
-      {/* Performance by Sport */}
-      <Card className="card-hover">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
-            Performance by Sport
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <ChartContainer config={chartConfig} className="min-h-[200px] sm:min-h-[250px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={performanceData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis 
-                  dataKey="sport" 
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={10}
-                  className="sm:text-xs"
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                />
-                <YAxis 
-                  stroke="hsl(var(--muted-foreground))" 
-                  fontSize={10}
-                  className="sm:text-xs"
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar 
-                  dataKey="views" 
-                  fill="hsl(var(--primary))" 
-                  radius={[4, 4, 0, 0]}
-                  opacity={0.8}
-                />
-                <Bar 
-                  dataKey="likes" 
-                  fill="hsl(var(--accent))" 
-                  radius={[4, 4, 0, 0]}
-                  opacity={0.8}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+        {/* Performance by Sport */}
+        <Card className="card-hover">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
+              By Sport
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <ChartContainer config={chartConfig} className="h-[180px] sm:h-[220px] md:h-[250px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={performanceData} margin={{ top: 5, right: 5, left: 0, bottom: 35 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="sport" 
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={9}
+                    className="sm:text-xs"
+                    angle={-45}
+                    textAnchor="end"
+                    height={35}
+                    interval={0}
+                  />
+                  <YAxis 
+                    stroke="hsl(var(--muted-foreground))" 
+                    fontSize={9}
+                    className="sm:text-xs"
+                    width={25}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar 
+                    dataKey="views" 
+                    fill="hsl(var(--primary))" 
+                    radius={[2, 2, 0, 0]}
+                    opacity={0.8}
+                  />
+                  <Bar 
+                    dataKey="likes" 
+                    fill="hsl(var(--accent))" 
+                    radius={[2, 2, 0, 0]}
+                    opacity={0.8}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

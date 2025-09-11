@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -6,11 +7,14 @@ import {
   BarChart3,
   Calendar,
   Settings,
+  Menu,
+  X,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useVideos } from "@/hooks/useVideos";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 // Enhanced Dashboard Components
@@ -21,13 +25,22 @@ import { VideoGrid } from "@/components/dashboard/VideoGrid";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 
 const Dashboard = () => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { profile } = useProfile();
-  const { stats, recentVideos, recentActivity, loading } = useDashboard();
+  const { stats, recentActivity, loading } = useDashboard();
+  const { videos: recentVideos, loading: videosLoading, getUserVideos } = useVideos();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
   };
+
+  // Fetch user's own videos on component mount
+  React.useEffect(() => {
+    if (user?.id) {
+      getUserVideos(user.id);
+    }
+  }, [user?.id, getUserVideos]);
 
   console.log("Dashboard stats:", recentVideos);
 
@@ -58,15 +71,20 @@ const Dashboard = () => {
             </div>
             
             {/* Mobile Menu Button */}
-            <div className="flex items-center gap-2 sm:hidden">
+            <div className="flex items-center gap-2 md:hidden">
               <ThemeToggle />
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
-                Sign Out
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2"
+              >
+                {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
               </Button>
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden sm:flex items-center gap-2 lg:gap-3 flex-wrap">
+            <div className="hidden md:flex items-center gap-2 lg:gap-3 flex-wrap">
               <Link to="/feed">
                 <Button variant="outline" size="sm">
                   Feed
@@ -97,32 +115,48 @@ const Dashboard = () => {
             </div>
           </div>
           
-          {/* Mobile Navigation */}
-          <div className="flex sm:hidden items-center gap-2 mt-3 overflow-x-auto pb-1">
-            <Link to="/feed">
-              <Button variant="outline" size="sm" className="whitespace-nowrap">
-                Feed
-              </Button>
-            </Link>
-            {profile?.role === "athlete" && (
-              <Link to="/athlete-comments">
-                <Button variant="default" size="sm" className="shadow-md btn-accent whitespace-nowrap">
-                  <MessageCircle className="h-4 w-4 mr-1" />
-                  Comments
+          {/* Mobile Navigation Menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden mt-4 pb-4 border-t border-border pt-4 animate-slide-in-right">
+              <div className="flex flex-col gap-3">
+                <Link to="/feed" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="outline" size="sm" className="w-full justify-start">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Feed
+                  </Button>
+                </Link>
+                {profile?.role === "athlete" && (
+                  <Link to="/athlete-comments" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="default" size="sm" className="w-full justify-start shadow-md btn-accent">
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      View Coach Comments
+                    </Button>
+                  </Link>
+                )}
+                <Link to="/post" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="outline" size="sm" className="w-full justify-start">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Post Video
+                  </Button>
+                </Link>
+                <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="outline" size="sm" className="w-full justify-start">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Profile
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSignOut}
+                  className="w-full justify-start"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Sign Out
                 </Button>
-              </Link>
-            )}
-            <Link to="/post">
-              <Button variant="outline" size="sm" className="whitespace-nowrap">
-                Post Video
-              </Button>
-            </Link>
-            <Link to="/profile">
-              <Button variant="outline" size="sm" className="whitespace-nowrap">
-                Profile
-              </Button>
-            </Link>
-          </div>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
@@ -191,7 +225,7 @@ const Dashboard = () => {
         </div>
 
         {/* Video Grid */}
-        <VideoGrid videos={recentVideos} loading={loading} />
+        <VideoGrid videos={recentVideos} loading={videosLoading} />
       </main>
     </div>
   );
