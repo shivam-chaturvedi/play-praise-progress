@@ -145,7 +145,7 @@ export function VideoGrid({ videos, loading }: VideoGridProps) {
                 
                 {/* View Count */}
                 <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
-                  {video.views.toLocaleString()} views
+                  {(video.views || 0).toLocaleString()} views
                 </div>
                 
                 {/* Action Menu */}
@@ -200,7 +200,7 @@ export function VideoGrid({ videos, loading }: VideoGridProps) {
                   <div className="flex items-center gap-3">
                     <span className="flex items-center gap-1">
                       <Eye className="h-3 w-3" />
-                      {video.views.toLocaleString()}
+                      {(video.views || 0).toLocaleString()}
                     </span>
                     {video.likes !== undefined && (
                       <span className="flex items-center gap-1">
