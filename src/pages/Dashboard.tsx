@@ -28,8 +28,10 @@ const Dashboard = () => {
   const { signOut, user } = useAuth();
   const { profile } = useProfile();
   const { stats, recentActivity, loading } = useDashboard();
-  const { videos: recentVideos, loading: videosLoading, getUserVideos } = useVideos();
+  const { getUserVideos } = useVideos();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userVideos, setUserVideos] = useState([]);
+  const [videosLoading, setVideosLoading] = useState(true);
 
   const handleSignOut = async () => {
     await signOut();
@@ -37,12 +39,19 @@ const Dashboard = () => {
 
   // Fetch user's own videos on component mount
   React.useEffect(() => {
-    if (user?.id) {
-      getUserVideos(user.id);
-    }
+    const fetchUserVideos = async () => {
+      if (user?.id) {
+        setVideosLoading(true);
+        const videos = await getUserVideos(user.id);
+        setUserVideos(videos);
+        setVideosLoading(false);
+      }
+    };
+    
+    fetchUserVideos();
   }, [user?.id, getUserVideos]);
 
-  console.log("Dashboard stats:", recentVideos);
+  console.log("Dashboard stats:", userVideos);
 
   if (loading) {
     return (
@@ -214,7 +223,7 @@ const Dashboard = () => {
         <div className="grid gap-4 sm:gap-6 lg:gap-8 lg:grid-cols-3">
           {/* Analytics Charts - Takes 2 columns */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            <AnalyticsCharts stats={stats} recentVideos={recentVideos} />
+            <AnalyticsCharts stats={stats} recentVideos={userVideos} />
           </div>
 
           {/* Sidebar with Actions and Activity */}
@@ -225,7 +234,7 @@ const Dashboard = () => {
         </div>
 
         {/* Video Grid */}
-        <VideoGrid videos={recentVideos} loading={videosLoading} />
+        <VideoGrid videos={userVideos} loading={videosLoading} />
       </main>
     </div>
   );

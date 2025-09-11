@@ -30,6 +30,7 @@ interface VideoData {
   skill_level?: string;
   created_at: string;
   views?: number;
+  views_count?: number;
   likes?: number;
   comments?: number;
   description?: string;
@@ -145,7 +146,7 @@ export function VideoGrid({ videos, loading }: VideoGridProps) {
                 
                 {/* View Count */}
                 <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
-                  {(video.views || 0).toLocaleString()} views
+                  {(video.views_count || video.views || 0).toLocaleString()} views
                 </div>
                 
                 {/* Action Menu */}
@@ -200,7 +201,7 @@ export function VideoGrid({ videos, loading }: VideoGridProps) {
                   <div className="flex items-center gap-3">
                     <span className="flex items-center gap-1">
                       <Eye className="h-3 w-3" />
-                      {(video.views || 0).toLocaleString()}
+                      {(video.views_count || video.views || 0).toLocaleString()}
                     </span>
                     {video.likes !== undefined && (
                       <span className="flex items-center gap-1">
