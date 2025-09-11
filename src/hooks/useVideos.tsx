@@ -238,8 +238,11 @@ export function useVideos() {
         event: '*',
         schema: 'public',
         table: 'videos'
-      }, () => {
-        fetchVideos();
+      }, (payload: any) => {
+        // Only refetch if it affects current user's videos
+        if (payload.new?.user_id === user.id || payload.old?.user_id === user.id) {
+          fetchVideos();
+        }
       })
       .subscribe();
 
@@ -250,8 +253,22 @@ export function useVideos() {
         event: '*',
         schema: 'public',
         table: 'likes'
-      }, () => {
-        fetchVideos();
+      }, (payload: any) => {
+        // Only update specific video instead of refetching all
+        if (payload.new?.video_id || payload.old?.video_id) {
+          const videoId = payload.new?.video_id || payload.old?.video_id;
+          setVideos(prev => prev.map(video => {
+            if (video.id === videoId) {
+              const likesChange = payload.eventType === 'INSERT' ? 1 : -1;
+              return {
+                ...video,
+                likes_count: Math.max(0, (video.likes_count || 0) + likesChange),
+                user_liked: payload.eventType === 'INSERT' ? payload.new?.user_id === user.id : false
+              };
+            }
+            return video;
+          }));
+        }
       })
       .subscribe();
 
@@ -262,8 +279,21 @@ export function useVideos() {
         event: '*',
         schema: 'public',
         table: 'comments'
-      }, () => {
-        fetchVideos();
+      }, (payload: any) => {
+        // Only update specific video instead of refetching all
+        if (payload.new?.video_id || payload.old?.video_id) {
+          const videoId = payload.new?.video_id || payload.old?.video_id;
+          setVideos(prev => prev.map(video => {
+            if (video.id === videoId) {
+              const commentsChange = payload.eventType === 'INSERT' ? 1 : payload.eventType === 'DELETE' ? -1 : 0;
+              return {
+                ...video,
+                comments_count: Math.max(0, (video.comments_count || 0) + commentsChange)
+              };
+            }
+            return video;
+          }));
+        }
       })
       .subscribe();
 

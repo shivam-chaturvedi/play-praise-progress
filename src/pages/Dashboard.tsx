@@ -49,7 +49,7 @@ const Dashboard = () => {
     };
     
     fetchUserVideos();
-  }, [user?.id, getUserVideos]);
+  }, [user?.id]); // Removed getUserVideos from dependencies to prevent infinite re-renders
 
   console.log("Dashboard stats:", userVideos);
 
