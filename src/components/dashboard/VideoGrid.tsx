@@ -197,150 +197,152 @@ export function VideoGrid({ videos, loading }: VideoGridProps) {
   }
 
   return (
-    <Card className="card-hover">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Video className="h-5 w-5 text-primary" />
-            Your Recent Videos
-            <Badge variant="secondary" className="ml-2">
-              {videos.length}
-            </Badge>
-          </CardTitle>
-          <Button variant="outline" size="sm">
-            View All Videos
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {videos.map((video, index) => (
-            <div key={video.id} className="group relative">
-              {/* Video Thumbnail */}
-              <div className="aspect-video bg-muted rounded-lg overflow-hidden relative cursor-pointer">
-                <video
-                  src={video.video_url}
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                  poster="/placeholder.svg"
-                  preload="metadata"
-                  muted
-                  onMouseEnter={(e) => e.currentTarget.play()}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.pause();
-                    e.currentTarget.currentTime = 0;
-                  }}
-                />
-                
-                {/* Play Overlay */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
-                    <Play className="h-8 w-8 text-white fill-white" />
+    <>
+      <Card className="card-hover">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Video className="h-5 w-5 text-primary" />
+              Your Recent Videos
+              <Badge variant="secondary" className="ml-2">
+                {videos.length}
+              </Badge>
+            </CardTitle>
+            <Button variant="outline" size="sm">
+              View All Videos
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {videos.map((video, index) => (
+              <div key={video.id} className="group relative">
+                {/* Video Thumbnail */}
+                <div className="aspect-video bg-muted rounded-lg overflow-hidden relative cursor-pointer">
+                  <video
+                    src={video.video_url}
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    poster="/placeholder.svg"
+                    preload="metadata"
+                    muted
+                    onMouseEnter={(e) => e.currentTarget.play()}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.pause();
+                      e.currentTarget.currentTime = 0;
+                    }}
+                  />
+                  
+                  {/* Play Overlay */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
+                      <Play className="h-8 w-8 text-white fill-white" />
+                    </div>
+                  </div>
+                  
+                  {/* Performance Badge */}
+                  {index === 0 && (
+                    <Badge className="absolute top-2 left-2 bg-primary/90 backdrop-blur-sm">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      Top Performer
+                    </Badge>
+                  )}
+                  
+                  {/* View Count */}
+                  <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
+                    {Number(video.views_count || video.views || 0).toLocaleString()} views
+                  </div>
+                  
+                  {/* Action Menu */}
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="secondary" size="sm" className="bg-white/20 backdrop-blur-sm border-0 hover:bg-white/30">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEdit(video)}>
+                          <Edit3 className="h-4 w-4 mr-2" />
+                          Edit Video
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Share2 className="h-4 w-4 mr-2" />
+                          Share
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => handleDelete(video)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
                 
-                {/* Performance Badge */}
-                {index === 0 && (
-                  <Badge className="absolute top-2 left-2 bg-primary/90 backdrop-blur-sm">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    Top Performer
-                  </Badge>
-                )}
-                
-                {/* View Count */}
-                <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
-                  {(video.views_count || video.views || 0).toLocaleString()} views
-                </div>
-                
-                {/* Action Menu */}
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="secondary" size="sm" className="bg-white/20 backdrop-blur-sm border-0 hover:bg-white/30">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(video)}>
-                        <Edit3 className="h-4 w-4 mr-2" />
-                        Edit Video
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Share
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        className="text-destructive"
-                        onClick={() => handleDelete(video)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-              
-              {/* Video Info */}
-              <div className="mt-3 space-y-2">
-                <h4 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
-                  {video.title}
-                </h4>
-                
-                {/* Tags */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  {video.sport && (
-                    <Badge variant="outline" className="text-xs px-2 py-0">
-                      {video.sport}
-                    </Badge>
-                  )}
-                  {video.skill_level && (
-                    <Badge variant="outline" className="text-xs px-2 py-0">
-                      {video.skill_level}
-                    </Badge>
-                  )}
-                </div>
-                
-                {/* Stats & Date */}
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <div className="flex items-center gap-3">
-                    <span className="flex items-center gap-1">
-                      <Eye className="h-3 w-3" />
-                      {(video.views_count || video.views || 0).toLocaleString()}
-                    </span>
-                    {video.likes !== undefined && (
-                      <span className="flex items-center gap-1">
-                        <Heart className="h-3 w-3" />
-                        {video.likes}
-                      </span>
+                {/* Video Info */}
+                <div className="mt-3 space-y-2">
+                  <h4 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
+                    {video.title}
+                  </h4>
+                  
+                  {/* Tags */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {video.sport && (
+                      <Badge variant="outline" className="text-xs px-2 py-0">
+                        {video.sport}
+                      </Badge>
                     )}
-                    {video.comments !== undefined && (
-                      <span className="flex items-center gap-1">
-                        <MessageCircle className="h-3 w-3" />
-                        {video.comments}
-                      </span>
+                    {video.skill_level && (
+                      <Badge variant="outline" className="text-xs px-2 py-0">
+                        {video.skill_level}
+                      </Badge>
                     )}
                   </div>
                   
-                  <time>
-                    {formatDistanceToNow(new Date(video.created_at), { 
-                      addSuffix: true 
-                    })}
-                  </time>
+                  {/* Stats & Date */}
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center gap-1">
+                        <Eye className="h-3 w-3" />
+                        {Number(video.views_count || video.views || 0).toLocaleString()}
+                      </span>
+                      {video.likes !== undefined && (
+                        <span className="flex items-center gap-1">
+                          <Heart className="h-3 w-3" />
+                          {Number(video.likes || 0).toLocaleString()}
+                        </span>
+                      )}
+                      {video.comments !== undefined && (
+                        <span className="flex items-center gap-1">
+                          <MessageCircle className="h-3 w-3" />
+                          {Number(video.comments || 0).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <time>
+                      {formatDistanceToNow(new Date(video.created_at), { 
+                        addSuffix: true 
+                      })}
+                    </time>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-        
-        {videos.length >= 6 && (
-          <div className="mt-6 text-center">
-            <Button variant="outline" className="w-full">
-              Load More Videos
-            </Button>
+            ))}
           </div>
-        )}
-      </CardContent>
+          
+          {videos.length >= 6 && (
+            <div className="mt-6 text-center">
+              <Button variant="outline" className="w-full">
+                Load More Videos
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -397,6 +399,6 @@ export function VideoGrid({ videos, loading }: VideoGridProps) {
           </div>
         </DialogContent>
       </Dialog>
-    </Card>
+    </>
   );
 }
