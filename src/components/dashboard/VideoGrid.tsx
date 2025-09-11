@@ -1,6 +1,26 @@
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { 
   Video, 
   Play, 
@@ -21,6 +41,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface VideoData {
   id: string;
@@ -45,6 +67,80 @@ interface VideoGridProps {
 }
 
 export function VideoGrid({ videos, loading }: VideoGridProps) {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
+  const [editForm, setEditForm] = useState({ title: '', description: '' });
+  const { toast } = useToast();
+
+  const handleDelete = (video: VideoData) => {
+    setSelectedVideo(video);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleEdit = (video: VideoData) => {
+    setSelectedVideo(video);
+    setEditForm({ title: video.title, description: video.description || '' });
+    setEditDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedVideo) return;
+
+    try {
+      const { error } = await supabase
+        .from('videos')
+        .delete()
+        .eq('id', selectedVideo.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Video deleted successfully",
+      });
+      
+      setDeleteDialogOpen(false);
+      setSelectedVideo(null);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete video",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveEdit = async () => {
+    if (!selectedVideo) return;
+
+    try {
+      const { error } = await supabase
+        .from('videos')
+        .update({
+          title: editForm.title,
+          description: editForm.description,
+        })
+        .eq('id', selectedVideo.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Video updated successfully",
+      });
+      
+      setEditDialogOpen(false);
+      setSelectedVideo(null);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update video",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Card className="card-hover">
@@ -127,6 +223,12 @@ export function VideoGrid({ videos, loading }: VideoGridProps) {
                   className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   poster="/placeholder.svg"
                   preload="metadata"
+                  muted
+                  onMouseEnter={(e) => e.currentTarget.play()}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.pause();
+                    e.currentTarget.currentTime = 0;
+                  }}
                 />
                 
                 {/* Play Overlay */}
@@ -158,7 +260,7 @@ export function VideoGrid({ videos, loading }: VideoGridProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleEdit(video)}>
                         <Edit3 className="h-4 w-4 mr-2" />
                         Edit Video
                       </DropdownMenuItem>
@@ -167,7 +269,10 @@ export function VideoGrid({ videos, loading }: VideoGridProps) {
                         Share
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive">
+                      <DropdownMenuItem 
+                        className="text-destructive"
+                        onClick={() => handleDelete(video)}
+                      >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete
                       </DropdownMenuItem>
@@ -236,6 +341,62 @@ export function VideoGrid({ videos, loading }: VideoGridProps) {
           </div>
         )}
       </CardContent>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the video "{selectedVideo?.title}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Video</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={editForm.title}
+                onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Video title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={editForm.description}
+                onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Video description"
+                rows={3}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={saveEdit}>
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

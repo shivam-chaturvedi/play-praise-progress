@@ -182,7 +182,7 @@ export function ActivityTimeline({ activities, loading }: ActivityTimelineProps)
               </div>
             ))}
             
-            {activities.length >= 10 && (
+            {activities.length >= 4 && (
               <div className="pt-4">
                 <Button variant="outline" className="w-full" size="sm">
                   View All Activity

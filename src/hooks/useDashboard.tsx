@@ -211,9 +211,9 @@ export function useDashboard() {
         });
       }
 
-      // Sort all activity by date
+      // Sort all activity by date and limit to top 4
       activity.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      setRecentActivity(activity.slice(0, 10));
+      setRecentActivity(activity.slice(0, 4));
 
     } catch (error: any) {
       console.error('Error fetching dashboard data:', error);
